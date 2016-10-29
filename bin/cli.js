@@ -19,7 +19,7 @@ const github = new GitHubApi()
 
     case 'login':
       const credentials = { type: 'basic' }
-      const note = `${package.name} request`
+      const note = `requested by ${package.name}`
       const username = credentials.username = readlineSync.question('GitHub username:')
       credentials.password = readlineSync.question('GitHub password:', { hideEchoBack: true })
       github.authenticate(credentials)
@@ -30,7 +30,7 @@ const github = new GitHubApi()
         process.exit()
       } catch (err) {
         if (err.message.includes('already_exists')) {
-          console.log(`Token already exists. Please go to https://github.com/settings/tokens, revoke token with name "${note}" and try again.`)
+          console.log(`Token already exists. Please go to https://github.com/settings/tokens, delete token with name "${note}" and try again.`)
         } else {
           console.error(err.message)
         }
