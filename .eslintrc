@@ -1,0 +1,23 @@
+# http://eslint.org/docs/rules/
+{
+  "extends": ["eslint:recommended"],
+  "env": {
+    "node": true,
+    "es6": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 7
+  },
+  "rules": {
+    "complexity": ["error", 10],
+    "no-debugger": 0,
+    "no-console": 0,
+    "new-cap": 0,
+    "strict": 0,
+    "no-underscore-dangle": 0,
+    "no-use-before-define": 0,
+    "eol-last": 0,
+    "semi": ["error", "never"],
+    "quotes": ["error", "single"]
+  }
+}

@@ -11,27 +11,31 @@ const EventEmitter = require('events')
 const Promise = require('bluebird')
 
 const readFileAsync = Promise.promisify(readFile)
-const noop = () => {}
+const readFileParsed = async path => {
+  let result
+  try {
+    const data = await readFileAsync(path)
+    result = JSON.parse(data)
+  } finally {
+    return result
+  }
+}
 
 // workshopper-adventure (learnyounode), adventure (stream-adventure)
 module.exports = (cfg = {}) => {
   const workshopsDirectory = cfg.workshopsDirectory || resolve(process.env.HOME || process.env.USERPROFILE, '.config')
   const eventEmitter = new EventEmitter()
-  watch(workshopsDirectory, { recursive: true }, (eventType, path) => {
+  watch(workshopsDirectory, { recursive: true }, async (eventType, path) => {
     const [ workshop, file ] = path.split('/')
-    switch (file) {
-      case 'current.json':
-        return readFileAsync(`${workshopsDirectory}/${path}`).then(data => {
-          const name = JSON.parse(data)
-          if (!name) { return } // workshop reseted
-          eventEmitter.emit('task', workshop, name)
-        }).catch(noop)
-      case 'completed.json':
-        return readFileAsync(`${workshopsDirectory}/${path}`).then(data => {
-          const items = JSON.parse(data)
-          if (!items || !items.length) { return } // workshop reseted
-          eventEmitter.emit('completed', workshop, items)
-        }).catch(noop)
+    if (file === 'current.json') {
+      const name = await readFileParsed(`${workshopsDirectory}/${path}`)
+      if (!name) { return } // workshop resetted or file error
+      return eventEmitter.emit('task', workshop, name)
+    }
+    if (file === 'completed.json') {
+      const items = await readFileParsed(`${workshopsDirectory}/${path}`)
+      if (!items || !items.length) { return } // workshop resetted or file error
+      return eventEmitter.emit('completed', workshop, items)
     }
   })
   return eventEmitter
