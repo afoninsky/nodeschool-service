@@ -24,19 +24,20 @@ const readFileParsed = async path => {
 // workshopper-adventure (learnyounode), adventure (stream-adventure)
 module.exports = (cfg = {}) => {
   const workshopsDirectory = cfg.workshopsDirectory || resolve(process.env.HOME || process.env.USERPROFILE, '.config')
-  const eventEmitter = new EventEmitter()
+  const emitter = cfg.emitter || new EventEmitter()
+
   watch(workshopsDirectory, { recursive: true }, async (eventType, path) => {
     const [ workshop, file ] = path.split('/')
     if (file === 'current.json') {
       const name = await readFileParsed(`${workshopsDirectory}/${path}`)
       if (!name) { return } // workshop resetted or file error
-      return eventEmitter.emit('task', workshop, name)
+      return emitter.emit('task', workshop, name)
     }
     if (file === 'completed.json') {
       const items = await readFileParsed(`${workshopsDirectory}/${path}`)
       if (!items || !items.length) { return } // workshop resetted or file error
-      return eventEmitter.emit('completed', workshop, items)
+      return emitter.emit('completed', workshop, items)
     }
   })
-  return eventEmitter
+  return emitter
 }
