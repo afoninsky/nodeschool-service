@@ -6,7 +6,7 @@ module.exports = (app, storage, package) => {
     const { method, url } = ctx
 
     const hashed_token = ctx.headers.authorization
-    const user = storage.gist.users[hashed_token]
+    const user = storage.gist.users.data[hashed_token]
 
     if (url === '/' && method === 'GET') {
       console.log('[] main page requested')
@@ -31,7 +31,7 @@ module.exports = (app, storage, package) => {
 
       github.authenticate({ token, type: 'token' })
       const user = await github.users.get({}) // 2do: valid handle responces
-      storage.gist.users[hashed_token] = ld.pick(user, ['id', 'avatar_url', 'html_url', 'login'])
+      storage.gist.users.data[hashed_token] = ld.pick(user, ['id', 'avatar_url', 'html_url', 'login'])
       await storage.update(storage.gist.users)
       console.log('[] user authentificated:', user.login)
       return ctx.body = { success: true }
@@ -42,7 +42,7 @@ module.exports = (app, storage, package) => {
         ctx.throw('GitHub auth required', 403)
       }
       const { workshop, task } = ctx.request.body
-      const userWorkshops = storage.gist.workshops[hashed_token] = storage.gist.workshops[hashed_token] || {}
+      const userWorkshops = storage.gist.workshops.data[hashed_token] = storage.gist.workshops.data[hashed_token] || {}
       userWorkshops.workhop = userWorkshops.workhop || {}
       userWorkshops.workhop.current = task
       await storage.update(storage.gist.workshops)
@@ -55,7 +55,7 @@ module.exports = (app, storage, package) => {
         ctx.throw('GitHub auth required', 403)
       }
       const { workshop, tasks } = ctx.request.body
-      const userWorkshops = storage.gist.workshops[hashed_token] = storage.gist.workshops[hashed_token] || {}
+      const userWorkshops = storage.gist.workshops.data[hashed_token] = storage.gist.workshops.data[hashed_token] || {}
       userWorkshops.workhop = userWorkshops.workhop || {}
       userWorkshops.workhop.completed = tasks
       await storage.update(storage.gist.workshops)
