@@ -14,6 +14,10 @@ class StorageItem {
     this.gistUrl = item.gistUrl
 
     this.path = resolve(path, this.filename)
+
+    if (item.syncInterval) {
+      this.syncTimer = setInterval(this.sync, item.syncInterval)
+    }
   }
 
   async get(withTimestamp = false) {
@@ -85,9 +89,9 @@ class Storage {
   constructor(config) {
     if (config.credentials) {
       this.github = new GitHubApi()
-      this.github.authenticate(credentials)
+      this.github.authenticate(config.credentials)
     }
-    if (!this.items) { throw new Error('storage items not set') }
+    if (!config.items) { throw new Error('storage items not set') }
     this.items = config.items
     this.path = config.path || `${process.env.HOME || process.env.USERPROFILE}/.config`
 

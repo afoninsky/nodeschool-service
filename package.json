@@ -1,12 +1,12 @@
 {
-  "name": "test",
-  "version": "1.0.0",
-  "description": "",
+  "name": "nodeschool-service",
+  "version": "0.0.1",
+  "description": "Service helper for nodeschool events",
   "main": "launcher.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Andrey 'vkfont' Afoninsky",
   "license": "ISC",
   "dependencies": {
     "bluebird": "^3.4.6",
@@ -24,5 +24,26 @@
   },
   "devDependencies": {
     "eslint": "^3.9.0"
-  }
+  },
+  "bin": {
+    "nodeschool-service": "cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/afoninsky/nodeschool-service.git"
+  },
+  "keywords": [
+    "nodeschool",
+    "node",
+    "javascript",
+    "mentor",
+    "workshop",
+    "learh",
+    "nodejs",
+    "meetup"
+  ],
+  "bugs": {
+    "url": "https://github.com/afoninsky/nodeschool-service/issues"
+  },
+  "homepage": "https://github.com/afoninsky/nodeschool-service#readme"
 }

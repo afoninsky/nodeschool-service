@@ -2,63 +2,74 @@ const GitHubApi = require('github')
 const ld = require('lodash')
 
 module.exports = (app, storage, package) => {
+
   return async ctx => {
     const { method, url } = ctx
 
+    const users = await storage.users.get()
     const hashed_token = ctx.headers.authorization
-    const user = storage.gist.users.data[hashed_token]
+    const user = users[hashed_token]
 
+    // display basic info
     if (url === '/' && method === 'GET') {
-      console.log('[] main page requested')
       return ctx.body = {
         name: package.name,
         version: package.version,
-        mentors: ['qwe', 'asd'],
+        user: user,
         auth: {
           client_secret: '11939218849e6cb05d7209405d124d657940e19c',
           client_id: 'f6515bd06aea0469a411',
           scopes: [],
           note: package.name,
-          note_url: 'url from github'
+          note_url: package.homepage
         }
       }
     }
 
+    // auth user and save session
     if (url === '/auth' && method === 'POST') {
       console.log('[] auth requested')
       const { token, hashed_token } = ctx.request.body
       const github = new GitHubApi()
-
       github.authenticate({ token, type: 'token' })
-      const user = await github.users.get({}) // 2do: valid handle responces
-      storage.gist.users.data[hashed_token] = ld.pick(user, ['id', 'avatar_url', 'html_url', 'login'])
-      await storage.update(storage.gist.users)
+      const userInfo = await github.users.get({})
+      const users = await storage.users.get()
+      const user = {}
+      user[hashed_token] = ld.pick(userInfo, ['id', 'avatar_url', 'html_url', 'login'])
+      await storage.users.set(user, true) // append to existing users
       console.log('[] user authentificated:', user.login)
       return ctx.body = { success: true }
     }
 
-    if (url === '/workshop/current' && method === 'POST') {
+    // set current active workshop task
+    if (url === '/workshop/active' && method === 'POST') {
       if (!user) {
         ctx.throw('GitHub auth required', 403)
       }
       const { workshop, task } = ctx.request.body
-      const userWorkshops = storage.gist.workshops.data[hashed_token] = storage.gist.workshops.data[hashed_token] || {}
-      userWorkshops.workhop = userWorkshops.workhop || {}
-      userWorkshops.workhop.current = task
-      await storage.update(storage.gist.workshops)
+      const workshops = storage.workshops.get()
+      const data = {}
+      data[user.id] = data[user.id] || {}
+      data[user.id].active = { workshop, task, updated: new Date() }
+      await storage.workshops.set(data, true)
       return ctx.body = { success: true }
     }
 
-    if (url === '/workshop/complete' && method === 'POST') {
-      if (method !== 'POST') { return }
+    // set completed tasks in workshop
+    if (url === '/workshop/completed' && method === 'POST') {
       if (!user) {
         ctx.throw('GitHub auth required', 403)
       }
       const { workshop, tasks } = ctx.request.body
-      const userWorkshops = storage.gist.workshops.data[hashed_token] = storage.gist.workshops.data[hashed_token] || {}
-      userWorkshops.workhop = userWorkshops.workhop || {}
-      userWorkshops.workhop.completed = tasks
-      await storage.update(storage.gist.workshops)
+      const workshops = storage.workshops.get()
+      const data = {}
+      data[user.id] = data[user.id] || {}
+      data[user.id].progress = data[user.id].progress || {}
+      data[user.id].progress[workshop] = {
+        completed: tasks,
+        updated: new Date()
+      }
+      await storage.workshops.set(data, true)
       return ctx.body = { success: true }
     }
 
